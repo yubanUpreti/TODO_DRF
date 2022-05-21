@@ -10,7 +10,7 @@ RUN apk update \
 
 RUN pip install --upgrade pip
 
-RUN adduser -D todo_app
+RUN addgroup todo_app && adduser -D todo_app -G todo_app -h /home/launcht
 
 ENV HOME /home/todo_app
 
@@ -20,13 +20,13 @@ ENV PATH "$PATH:/home/todo_app/.local/bin"
 
 WORKDIR ${APP_DIR}
 
-ADD ../requirements.txt ${APP_DIR}/
-
-ADD .env ${APP_DIR}/
+ADD requirements.txt ${APP_DIR}/
 
 RUN pip install -r ${APP_DIR}/requirements.txt
 
 COPY .. ${APP_DIR}
+
+RUN chown -R todo_app:todo_app
 
 USER todo_app
 
