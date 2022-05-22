@@ -17,8 +17,9 @@ Including another URLconf
 from rest_framework import routers
 from .views.todoViewSet import TodoItemsViewSet
 
+app_name = "todos"
 todo_router = routers.DefaultRouter()
 
-todo_router.register(r'todos', TodoItemsViewSet, basename='todos')
+todo_router.register(r'todos', TodoItemsViewSet, basename='todo-urls')
 urlpatterns = []
 urlpatterns += todo_router.urls

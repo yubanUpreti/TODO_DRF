@@ -37,7 +37,7 @@ class TodoItemsViewSet(ModelViewSet):
         except Todo.DoesNotExist:
             return Response({"message": "Todo Object with given id doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
-    image = openapi.Parameter('image', in_=openapi.IN_FORM, description='todo image', type=openapi.TYPE_FILE)
+    image = openapi.Parameter('image', in_=openapi.IN_FORM, description='todo image', type=openapi.TYPE_FILE, required=False)
     deadline = openapi.Parameter('deadline', in_=openapi.IN_FORM, description='todo deadline',
                                  format=openapi.FORMAT_DATE, type=openapi.TYPE_STRING, required=True)
 
@@ -58,20 +58,29 @@ class TodoItemsViewSet(ModelViewSet):
     def update(self, request, *args, **kwargs):
         uuid_key = kwargs.pop('pk')
         instance = self.get_todo_object(uuid_key)
-        serializer = self.get_serializer(instance, data=request.data, context={'method': self.action})
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response({"message": "Todo updated successfully"}, status=status.HTTP_200_OK, headers=headers)
+        if instance.author == request.user:
+            serializer = self.get_serializer(instance, data=request.data, context={'method': self.action})
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response({"message": "Todo updated successfully"}, status=status.HTTP_200_OK, headers=headers)
+        else:
+            return Response({"message": "Todo can't be updated. This todo doesn't belong to you."}, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(manual_parameters=[image, deadline], request_body=TodoItemsSerializer,
                          operation_id="Patch Method Todo Items", responses={status.HTTP_200_OK: "Success"})
     def partial_update(self, request, *args, **kwargs):
         uuid_key = kwargs.pop('pk')
         instance = self.get_todo_object(uuid_key)
-        serializer = self.get_serializer(instance, data=request.data, context={'method': self.action}, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response({"message": "Todo partial updated successfully"}, status=status.HTTP_200_OK,
-                        headers=headers)
+        if instance.author == request.user:
+            serializer = self.get_serializer(instance, data=request.data, context={'method': self.action}, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response({"message": "Todo partial updated successfully"}, status=status.HTTP_200_OK,
+                            headers=headers)
+        else:
+            return Response({"message": "Todo can't be updated. This todo doesn't belong to you."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
